@@ -69,22 +69,3 @@ function runGameTimer() {
         gameTimer = frameCount/(FPS);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
