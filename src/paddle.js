@@ -33,16 +33,20 @@ function Paddle(world, x, y, width, height, color) {
                 // Left
 				case 65:
                 case 37:
-                    this.view.body.ApplyImpulse(new Box2D.Common.Math.b2Vec2(-150, 0),
-					this.view.body.GetWorldCenter());
+					let leftForceVector = (e.shiftKey) ? new Box2D.Common.Math.b2Vec2(-300, 0) : new Box2D.Common.Math.b2Vec2(-150, 0);
+                    this.view.body.ApplyImpulse(leftForceVector, this.view.body.GetWorldCenter());
                     break;
                     
                 // Right
 				case 68:
                 case 39:
-                    this.view.body.ApplyImpulse(new Box2D.Common.Math.b2Vec2(150, 0),
-					this.view.body.GetWorldCenter());
+                    let rightForceVector = (e.shiftKey) ? new Box2D.Common.Math.b2Vec2(300, 0) : new Box2D.Common.Math.b2Vec2(150, 0);
+                    this.view.body.ApplyImpulse(rightForceVector, this.view.body.GetWorldCenter());
                     break;
+					
+				//Space Bar
+				case 32:
+					this.view.body.SetLinearVelocity(new Box2D.Common.Math.b2Vec2(0,0));
             }
             
             e.preventDefault();

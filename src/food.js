@@ -12,12 +12,12 @@ function Food(world, width, height, color) {
 	const fixDef = new Box2D.Dynamics.b2FixtureDef();
 	fixDef.density = 5.0;
 	fixDef.friction = 0.5;
-	fixDef.restitution = 0.4;
+	fixDef.restitution = 0.2;
 	const bodyDef = new Box2D.Dynamics.b2BodyDef();
 	bodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
 	bodyDef.position.x = Math.random() * SCREEN_WIDTH / SCALE;
 	bodyDef.position.y = 0;
-	bodyDef.fixedRotation = false;
+	bodyDef.fixedRotation = true;
 	bodyDef.userData = { type: FOOD };
 	fixDef.shape = new Box2D.Collision.Shapes.b2PolygonShape();
 	fixDef.shape.SetAsBox((width / 30) / 2, (height / 30) / 2);
@@ -29,7 +29,8 @@ function Food(world, width, height, color) {
 function tick(e) {
 	this.x = this.body.GetPosition().x * SCALE;
 	this.y = this.body.GetPosition().y * SCALE;
-	this.rotation = this.body.GetAngle() * (180 / Math.Pi);
+	// console.log('Rotation', this.body.GetAngle() * (180 / Math.Pi));
+	// this.rotation = this.body.GetAngle() * (180 / Math.Pi);
 	this.body.ApplyForce(new Box2D.Common.Math.b2Vec2(0, 300), this.body.GetWorldCenter());
 }
 

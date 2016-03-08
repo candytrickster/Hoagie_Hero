@@ -7,10 +7,11 @@ function Wall(world, x, y, height, width, color, type) {
 	
 	this.view = new createjs.Shape();
 	this.view.graphics.beginFill(this.color)
-					.drawRect(0, 0, this.width, this.height);
-	this.view.regX = 0
+					.drawRect(x, 0, this.width, this.height);
+	
+	this.view.regX = this.width / 2;
 	this.view.regY = -this.y + (height - (height / 2));
-					
+				
 	//Build the physics object
 	const fixDef = new Box2D.Dynamics.b2FixtureDef();
 	fixDef.density = 20.0;
