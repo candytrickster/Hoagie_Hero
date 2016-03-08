@@ -1,66 +1,47 @@
 import { PADDLE_SPEED_LIMIT, FRICTION, SCREEN_WIDTH } from './constants/gameConstants.js';
+import { PADDLE } from './constants/objectTypes.js';
 
-class Paddle extends createjs.Container {
-    constructor(x, y, width, height, color) {
-        super();
-        
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-		this.color = color;
-        
-        this.ax = this.ay = this.vx = this.vy = 0;
-    }
+function Paddle(world, x, y, width, height, color) {
+	this.x = x;
+	this.y = y;
+	this.width = width;
+	this.height = height;
+	this.view = new createjs.Shape();
+	this.view.graphics.beginFill(color)
+				.drawRect(0, 0, this.width, this.height);
+	this.view.regX = width / 2;
+	this.view.regY = -this.y + (this.height - (this.height / 2));
 	
-	init() {
-		this.build();
-		this.registerListners();
-	}
-    
-    move() {
-        this.vx += this.ax;
-	    this.vy += this.ay;
-        
-        let speed = Math.sqrt((this.vx * this.vx) + (this.vy * this.vy));
-        
-        if(speed > PADDLE_SPEED_LIMIT) {
-            speed = PADDLE_SPEED_LIMIT;
-        }
-        
-        if (speed > FRICTION) {
-            speed -= FRICTION;
-        } else {
-            speed = 0;
-        }
-        
-        let angle = Math.atan2(this.vy, this.vx);
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-        
-        this.x += this.vx;
-	    this.y += this.vy;
-        
-        if(this.x >= SCREEN_WIDTH - this.width) {
-            this.x = SCREEN_WIDTH - this.width;
-        } else if(this.x <= 0) {
-            this.x = 0;
-        }
-    }
-    
-    registerListners() {
-        window.addEventListener('keydown', (e) => {
+	//Build the physics object
+	const fixDef = new Box2D.Dynamics.b2FixtureDef();
+	fixDef.density = 20.0;
+	fixDef.friction = 0.5;
+	fixDef.restitution = 0;
+	const bodyDef = new Box2D.Dynamics.b2BodyDef();
+	bodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
+	bodyDef.fixedRotation = true;
+	bodyDef.position.x = this.x / 30;
+	bodyDef.position.y = this.y / 30;
+	bodyDef.userData = { type: PADDLE };
+	fixDef.shape = new Box2D.Collision.Shapes.b2PolygonShape();
+	fixDef.shape.SetAsBox((this.width / 30) / 2, (this.height / 30) / 2);
+	this.view.body = world.CreateBody(bodyDef);
+	this.view.body.CreateFixture(fixDef);
+	
+	window.addEventListener('keydown', (e) => {
             switch(e.keyCode) {
                 // Left
 				case 65:
                 case 37:
-                    this.ax = -1;
+                    this.view.body.ApplyImpulse(new Box2D.Common.Math.b2Vec2(-150, 0),
+					this.view.body.GetWorldCenter());
                     break;
                     
                 // Right
 				case 68:
                 case 39:
-                    this.ax = 1;
+                    this.view.body.ApplyImpulse(new Box2D.Common.Math.b2Vec2(150, 0),
+					this.view.body.GetWorldCenter());
                     break;
             }
             
@@ -68,21 +49,13 @@ class Paddle extends createjs.Container {
             e.stopPropagation();
         }, false);
         
-        window.addEventListener('keyup', () => {
-            this.ax = this.ay = 0;
-        }, false);
-        
-        createjs.Ticker.addEventListener("tick", () => {
-            this.move();
-        });
-    }
-    
-    build() {
-        const paddle = new createjs.Shape();
-		paddle.graphics.beginFill(this.color)
-					.drawRect(0, 0, this.width, this.height);
-		this.addChild(paddle);
-    }
+	this.view.addEventListener('tick', tick.bind(this.view));
 }
 
-export default createjs.promote(Paddle, "Container");
+function tick(e) {
+	this.x = this.body.GetPosition().x * 30;
+	this.rotation = this.body.GetAngle() * (180 / Math.Pi);
+	this.body.ApplyForce(new Box2D.Common.Math.b2Vec2(0, 200), this.body.GetWorldCenter());
+}
+
+export default Paddle;
