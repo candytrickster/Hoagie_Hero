@@ -8,9 +8,9 @@ function FoodSpawner(world, stage) {
 	this.startDrop = (totalItems, intervalTime) => {
 		let itemsDropped = 0;
 		
-		const itemDropInterval = () => {
+		this.itemDropInterval = () => {
 			if(itemsDropped < totalItems) {
-				const foodItem = new Food.default(this.world, 80, 30, '#00ff00');
+				const foodItem = new Food.default(this.world, this.currentItems.length, 80, 30, '#00ff00');
 				this.currentItems.push(foodItem);
 				itemsDropped++;
 				this.stage.addChild(foodItem.view);	
@@ -20,11 +20,16 @@ function FoodSpawner(world, stage) {
 		};
 		
 		const stopInterval = () => {
-			clearInterval(itemDropInterval);
+			clearInterval(this.itemDropInterval);
 		}
 		
-		setInterval(itemDropInterval, intervalTime);
+		setInterval(this.itemDropInterval, intervalTime);
 	}; 	
+	
+	this.clear = () => {
+		this.currentItems.splice(0, this.currentItems.length);
+		clearInterval(this.itemDropInterval);
+	};
 }
 
 export default FoodSpawner;

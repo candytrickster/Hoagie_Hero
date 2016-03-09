@@ -33,14 +33,14 @@ function Paddle(world, x, y, width, height, color) {
                 // Left
 				case 65:
                 case 37:
-					let leftForceVector = (e.shiftKey) ? new Box2D.Common.Math.b2Vec2(-10000, 0) : new Box2D.Common.Math.b2Vec2(-5000, 0);
+					let leftForceVector = (e.shiftKey) ? new Box2D.Common.Math.b2Vec2(-10000, 0) : new Box2D.Common.Math.b2Vec2(-6000, 0);
                     this.view.body.ApplyForce(leftForceVector, this.view.body.GetPosition());
                     break;
                     
                 // Right
 				case 68:
                 case 39:
-                    let rightForceVector = (e.shiftKey) ? new Box2D.Common.Math.b2Vec2(10000, 0) : new Box2D.Common.Math.b2Vec2(5000, 0);
+                    let rightForceVector = (e.shiftKey) ? new Box2D.Common.Math.b2Vec2(10000, 0) : new Box2D.Common.Math.b2Vec2(6000, 0);
                     this.view.body.ApplyForce(rightForceVector, this.view.body.GetWorldCenter());
                     break;
 					

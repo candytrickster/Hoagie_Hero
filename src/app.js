@@ -72,6 +72,7 @@ playBtn.onClick((e) => {
 				scoreKeeper.clear();
 				destroyBodies(detectedHits);
 				destroyBodies(blocksOnPaddle);
+				foodSpawner.clear();
 				stage.addChild(screens.gameOverScreen, playBtn.view);
 				stage.update();
 			} else {
@@ -121,7 +122,21 @@ collisionListener.BeginContact = (contact, impulse) => {
 	} else if(bodyA.GetUserData().type === FOOD && bodyB.GetUserData().type === FOOD) {
 		if(detectedHits.indexOf(bodyA) < 0) {
 			if(blocksOnPaddle.indexOf(bodyB) >= 0) {
-				scoreKeeper.updateScore(1);
+				const blocks = [bodyA, bodyB];
+				blocks.sort((a, b) => {
+					if(a.GetPosition().y > b.GetPosition().y) {
+						return 1;
+					}
+					if(a.GetPosition().y < b.GetPosition().y) {
+						return -1;
+					}
+					
+					return 0;
+				});
+				
+				if(blocks[0].GetUserData().index > blocks[1].GetUserData().index) {
+					scoreKeeper.updateScore(1);
+				}
 				blocksOnPaddle.push(bodyA);	
 			} 
 			detectedHits.push(bodyA);
