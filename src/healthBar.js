@@ -1,7 +1,7 @@
 import { TOTAL_HEALTH } from './constants/gameConstants.js';
 
 const healthBarColors = {
-    background: "#000000",
+    background: "#CCC",
     goodHealth: "#00ff00",
     dangerHealth: "#FF9100",
     dieing: "#ff0000"
@@ -31,6 +31,14 @@ function HealthBar(x, y, width, height) {
             .clear()
             .beginFill(barColor)
             .drawRect(this.x, this.y, this.width * percent, this.height);	
+	};
+	
+	this.reset = () => {
+		this.health = TOTAL_HEALTH;
+		this.view.healthBar.graphics
+            .clear()
+            .beginFill(healthBarColors.goodHealth)
+            .drawRect(this.x, this.y, this.width, this.height);
 	};
 };
 

@@ -11,11 +11,11 @@ function Food(world, width, height, color) {
 	//Build the physics object
 	const fixDef = new Box2D.Dynamics.b2FixtureDef();
 	fixDef.density = 5.0;
-	fixDef.friction = 0.5;
+	fixDef.friction = 0.7;
 	fixDef.restitution = 0.2;
 	const bodyDef = new Box2D.Dynamics.b2BodyDef();
 	bodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
-	bodyDef.position.x = Math.random() * SCREEN_WIDTH / SCALE;
+	bodyDef.position.x = ((Math.random() * (SCREEN_WIDTH - 40)) + 20) / SCALE;
 	bodyDef.position.y = 0;
 	bodyDef.fixedRotation = true;
 	bodyDef.userData = { type: FOOD };
@@ -31,7 +31,7 @@ function tick(e) {
 	this.y = this.body.GetPosition().y * SCALE;
 	// console.log('Rotation', this.body.GetAngle() * (180 / Math.Pi));
 	// this.rotation = this.body.GetAngle() * (180 / Math.Pi);
-	this.body.ApplyForce(new Box2D.Common.Math.b2Vec2(0, 300), this.body.GetWorldCenter());
+	this.body.ApplyForce(new Box2D.Common.Math.b2Vec2(0, 200), this.body.GetWorldCenter());
 }
 
 export default Food;

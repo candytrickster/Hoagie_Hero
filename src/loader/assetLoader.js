@@ -1,5 +1,6 @@
 const manifest = [
-    {src: "screens/title.png", id:"title"},
+    {src: "title.png", id:"title"},
+	{src: "gameover.png", id:"gameOver"},
 ];
 
 function Preloader() {
