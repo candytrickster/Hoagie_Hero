@@ -1,17 +1,11 @@
 import { SCREEN_WIDTH, SCALE } from './constants/gameConstants.js';
-import { FOOD, BAD_FOOD } from './constants/objectTypes.js';
+import { HEALTH } from './constants/objectTypes.js';
 
-function Food(world, index, width, height, color, isBad, isPowerUp) {
-	this.index = index;
-	this.isBad = isBad || false;
-	this.isPowerUp = isPowerUp || false;
-	this.color = (isBad) ? '#ff0000' : color || '#00ff00';
-	this.view = new createjs.Container();
-	const shape = new createjs.Shape();
-	shape.graphics.beginFill(this.color)
+function HealthPack(world, width, height, color) {
+	this.color = '#2E0854';
+	this.view = new createjs.Shape();
+	this.view.graphics.beginFill(this.color)
 				.drawRect(0, 0, width, height);
-	const text = new createjs.Text(this.index, "12px Arial", '#000');
-	this.view.addChild(shape, text);
 	this.view.regX = width / 2;
 	this.view.regY = height - 15;
 	
@@ -25,7 +19,7 @@ function Food(world, index, width, height, color, isBad, isPowerUp) {
 	bodyDef.position.x = ((Math.random() * (SCREEN_WIDTH - 80)) + 40) / SCALE;
 	bodyDef.position.y = 0;
 	bodyDef.fixedRotation = true;
-	bodyDef.userData = { type: (isBad) ? BAD_FOOD : FOOD, index: this.index };
+	bodyDef.userData = { type: HEALTH };
 	fixDef.shape = new Box2D.Collision.Shapes.b2PolygonShape();
 	fixDef.shape.SetAsBox((width / 30) / 2, (height / 30) / 2);
 	this.view.body = world.CreateBody(bodyDef);
@@ -41,4 +35,4 @@ function tick(e) {
 	this.body.ApplyForce(new Box2D.Common.Math.b2Vec2(0, 100), this.body.GetWorldCenter());
 }
 
-export default Food;
+export default HealthPack;

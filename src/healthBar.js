@@ -23,6 +23,9 @@ function HealthBar(x, y, width, height) {
 	
 	this.update = (newHealth) => {
 		this.health -= newHealth;
+		if(this.health >= 100) {
+			this.health = 100;
+		}
 		const percent = this.health / TOTAL_HEALTH;
 		let barColor = (this.health >= 80) ? healthBarColors.goodHealth :
             (this.health > 50) ? healthBarColors.dangerHealth : healthBarColors.dieing;

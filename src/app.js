@@ -1,14 +1,15 @@
 import { FPS, SCREEN_HEIGHT, SCREEN_WIDTH, FRICTION, SCALE } from './constants/gameConstants.js';
-import { GROUND, FOOD, PADDLE, WALL } from './constants/objectTypes.js';
+import { GROUND, FOOD, PADDLE, WALL, BAD_FOOD, HEALTH } from './constants/objectTypes.js';
 import { buildStage } from './stage.js';
 import Paddle from './paddle.js';
 import FoodSpawner from './foodSpawner.js';
 import ScoreKeeper from './scoreKeeper.js';
+import LevelPassedDisplay from './levelPassedDisplay.js';
 import HealthBar from './healthBar.js';
 import CountDown from './countdown.js';
 import Wall from './wall.js';
 import Button from './button.js';
-import Screens from './screens.js';
+import ImageManager from './imageManager.js';
 
 const stage = buildStage('game');
 const debug = document.getElementById('debug');
@@ -39,29 +40,34 @@ const setUpPhysics = () => {
 
 setUpPhysics();
 
-const scoreKeeper = new ScoreKeeper.default(600, 50, 0, "#fff");
+const images = new ImageManager.default(stage);
+images.loadScreens(() => {
+	stage.addChild(images.titleScreen, playBtn.view);
+	stage.update();
+});
+
+const scoreKeeper = new ScoreKeeper.default((SCREEN_WIDTH / 2) + 20, 20, 5, "#fff");
 
 const healthBar = new HealthBar.default(600, 10, 150, 20);
 
 const foodSpawner = new FoodSpawner.default(world, stage);
 
-const paddle = new Paddle.default(world, 400, 560, 120, 60, '#ff0000');
-
 const playBtn = new Button.default(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 200, 'Play');
 playBtn.onClick((e) => {
 	createjs.Ticker.setFPS(FPS);
 	createjs.Ticker.useRAF = true;
-	stage.addChild(ground.view, leftWall.view, rightWall.view, scoreKeeper.view, healthBar.view.background, healthBar.view.healthBar, paddle.view);
-	if(stage.getChildIndex(screens.gameOverScreen) >= 0) {
-		stage.removeChild(screens.gameOverScreen, playBtn.view);	
+	const paddle = new Paddle.default(world, 400, 560, 120, 60, '#000', images.playerSprite);
+	stage.addChild(images.backgroundImage, ground.view, leftWall.view, rightWall.view, scoreKeeper.view, healthBar.view.background, healthBar.view.healthBar, paddle.view);
+	if(stage.getChildIndex(images.gameOverScreen) >= 0) {
+		stage.removeChild(images.gameOverScreen, playBtn.view);	
 	} else {
-		stage.removeChild(screens.titleScreen, playBtn.view);
+		stage.removeChild(images.titleScreen, playBtn.view);
 	}
 	stage.update();
 	
 	const countdown = new CountDown.default(stage, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 4, null, () => {
 		stage.removeChild(countdown.view);
-		foodSpawner.startDrop(15, 5000);
+		foodSpawner.startDrop(10, 5000);
 		
 		createjs.Ticker.addEventListener("tick", () => {
 			//Check if player is dead
@@ -69,29 +75,37 @@ playBtn.onClick((e) => {
 				createjs.Ticker.removeAllEventListeners('tick');
 				stage.removeAllChildren();
 				healthBar.reset();
-				scoreKeeper.clear();
+				scoreKeeper.clear(5);
 				destroyBodies(detectedHits);
 				destroyBodies(blocksOnPaddle);
 				foodSpawner.clear();
-				stage.addChild(screens.gameOverScreen, playBtn.view);
+				stage.addChild(images.gameOverScreen, playBtn.view);
 				stage.update();
+				//Check if player has won
+			} else if(scoreKeeper.score <= 0) {
+				stage.addChild(images.winScreen);
+				stage.update();
+				setTimeout(() => {
+					createjs.Ticker.removeAllEventListeners('tick');
+					stage.removeAllChildren();
+					healthBar.reset();
+					scoreKeeper.clear(5);
+					destroyBodies(detectedHits);
+					destroyBodies(blocksOnPaddle);
+					foodSpawner.clear();
+					stage.addChild(images.titleScreen, playBtn.view);
+					stage.update();
+				}, 2000);
 			} else {
 				stage.update();
 				//world.DrawDebugData();
-				world.Step(1/FPS, 10, 10);	
+				world.Step(1/FPS, 10, 10);
 			}
 			
 			world.ClearForces();
 			destroyBodies(bodiesOnTheFloor);
 		});
 	});
-});
-
-//Game State Screens
-const screens = new Screens.default(stage);
-screens.loadScreens(() => {
-	stage.addChild(screens.titleScreen, playBtn.view);
-	stage.update();
 });
 
 //Collision detection
@@ -103,19 +117,21 @@ collisionListener.BeginContact = (contact, impulse) => {
 	const bodyA = contact.GetFixtureA().GetBody();
 	const bodyB = contact.GetFixtureB().GetBody();
 	
-	if(bodyA.GetUserData().type === FOOD && bodyB.GetUserData().type === GROUND) {
-		healthBar.update(10);
+	if((bodyA.GetUserData().type === FOOD || bodyA.GetUserData().type === BAD_FOOD || 
+		bodyA.GetUserData().type === HEALTH) && bodyB.GetUserData().type === GROUND) {
+		if(bodyA.GetUserData().type === FOOD) {
+			healthBar.update(20);	
+		}
 		detectedHits.push(bodyA);
 		bodiesOnTheFloor.push(bodyA);
 		const blockOnPaddle = blocksOnPaddle.indexOf(bodyA);
 		if(blockOnPaddle !== -1) { 
 			blocksOnPaddle.splice(blockOnPaddle, 1);
-			scoreKeeper.updateScore(-1); 
+			scoreKeeper.updateScore(1); 
 		}
-	} else if((bodyA.GetUserData().type === FOOD || bodyB.GetUserData().type === FOOD) &&
-			 (bodyB.GetUserData().type === PADDLE || bodyA.GetUserData().type === PADDLE)) {
+	} else if(bodyA.GetUserData().type === FOOD && bodyB.GetUserData().type === PADDLE) {
 		if(detectedHits.indexOf(bodyA) < 0) {
-			scoreKeeper.updateScore(1);
+			scoreKeeper.updateScore(-1);
 			detectedHits.push(bodyA);
 			blocksOnPaddle.push(bodyA);
 		}
@@ -135,12 +151,31 @@ collisionListener.BeginContact = (contact, impulse) => {
 				});
 				
 				if(blocks[0].GetUserData().index > blocks[1].GetUserData().index) {
-					scoreKeeper.updateScore(1);
+					scoreKeeper.updateScore(-1);
 				}
 				blocksOnPaddle.push(bodyA);	
 			} 
 			detectedHits.push(bodyA);
 		}
+	} else if(bodyA.GetUserData().type === BAD_FOOD && bodyB.GetUserData().type === FOOD) {
+		if(detectedHits.indexOf(bodyA) < 0) {
+			if(blocksOnPaddle.indexOf(bodyB) >= 0) {
+				scoreKeeper.updateScore(1);
+				detectedHits.push(bodyA);
+				blocksOnPaddle.splice(blocksOnPaddle.indexOf(bodyB), 1);
+				bodiesOnTheFloor.push(bodyA);
+				bodiesOnTheFloor.push(bodyB);
+			}		
+		}
+	} else if(bodyA.GetUserData().type === BAD_FOOD && bodyB.GetUserData().type === PADDLE) {
+		if(detectedHits.indexOf(bodyA) < 0) {
+			detectedHits.push(bodyA);
+			healthBar.update(20);
+			bodiesOnTheFloor.push(bodyA);
+		}
+	} else if(bodyA.GetUserData().type === HEALTH && (bodyB.GetUserData().type === PADDLE || bodyB.GetUserData().type === FOOD)) {
+		healthBar.update(-20);
+		bodiesOnTheFloor.push(bodyA);
 	}
 };
 world.SetContactListener(collisionListener);
